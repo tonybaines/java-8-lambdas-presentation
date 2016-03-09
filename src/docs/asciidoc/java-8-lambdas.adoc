@@ -1,0 +1,326 @@
+= Java 8 Lambdas
+2016-03-09
+:revnumber: {project-version}
+ifndef::imagesdir[:imagesdir: images]
+ifndef::sourcedir[:sourcedir: ../java]
+
+== What's New?
+* Functional Programming (Lambdas)
+* Default Methods in Interfaces
+* Streams
+* `Optional`
+* New Date/Time API
+* 'Nashorn' JavaScript engine
+
+
+== Functional Interfaces
+[%step]
+* A functional interface has exactly one abstract method
+* Several interfaces defined in `java.util.function`
+** *`Function<T,R>`* - transform something of type *T* to something of type *R*
+** *`BiFunction<T,R,S>`* - transform something of type *T* and of type *R* to something of type *S*
+** *`Consumer<T>`* - accept something of type *T* (assumes a side-effect results)
+** *`Predicate<T>`* - transform something of type *T* to `boolean`
+** *`Supplier<R>`* - provides one or more instances of type *R*
+
+=== Implementing Functional Interfaces
+* Can just create instances of the functional interfaces (Java 7 style)
+
+[source, java]
+-----
+class IsEvenPredicate implements Predicate<Integer> {
+  @Override
+  public boolean test(Integer i) {
+    return i%2 == 0;
+  }
+}
+-----
+* More concise to use lambda expressions
+
+=== Lambdas
+
+[source, java]
+-----
+Predicate<Integer> isEvenPredicate = (i) -> i%2 == 0;
+
+Function<String, Integer> myFunction = (s) -> s.length();
+-----
+
+[%step]
+* `myFunction` is a `Function` accepting a `String` and returning an `Integer`
+** a reference to something that does computation
+* The *core principle* of Functional Programming is that functions are *values*
+** Like `String` or `int`
+** Can be passed-in and returned-from methods
+
+=== Anonymous Lambda expressions
+* Anywhere a functional interface is expected, an anonymous lambda expression can be used
+
+[source, java]
+-----
+IntPredicate isEven = (i) -> i%2 == 0;
+
+IntStream.rangeClosed(0,10)
+      .filter(isEven)
+-----
+Could be written
+
+[source, java]
+-----
+IntStream.rangeClosed(0,10)
+      .filter( i -> i%2 == 0 )
+-----
+
+
+=== Questions?
+
+
+== Default Methods in Interfaces
+* Mainly to help the migration to Lambdas
+* Opens up some useful design options
+
+=== The Java 7 way
+* Up to Java 7, interfaces
+** Define an API
+** Hold static data
+** Allow multiple inheritance of APIs
+
+[source, java]
+-----
+public interface Developer {
+  public static final Period DEFAULT_ESTIMATE = Period.ofDays(2);
+  public Software code(Specification spec, Coffee c);
+  public Period estimate(Specification spec);
+}
+-----
+
+=== Default Methods
+* A common pattern has been to define an interface and an abstract class with default implementation
+
+[source, java]
+-----
+public abstract class DefaultDeveloper implements Developer {
+  public Period estimate(Specification spec) {
+    return DEFAULT_ESTIMATE;
+  }
+}
+-----
+* Java 8 lets us do both in the same place
+
+[source, java]
+-----
+public interface Developer {
+  public static final Period DEFAULT_ESTIMATE = Period.ofDays(2);
+  public Software code(Specification spec, Coffee c);
+  default Period estimate(Specification spec) {
+    return DEFAULT_ESTIMATE;
+  }
+}
+-----
+* *N.B.* No inheritance of _state_
+
+
+=== Method References
+* Can also now define `static` methods in interfaces as well as classes
+** Not inherited, but can be referred to
+
+[source, java]
+-----
+IntStream.rangeClosed(0,10)
+      .filter(i -> i%2 ==0)
+      .reduce(Integer::sum);
+-----
+* Java 8 uses default & static methods to enrich the existing APIs
+** `Integer::sum` is a Functional Interface `java.util.function.BinaryOperator`
+
+=== Questions?
+
+
+== Streams
+
+* The idea of chaining together operations to get a result is familiar
+
+[plantuml, "stream-processing", png, scaledwidth="100%"]
+----
+@startuml
+(*) -> filter
+-> transform
+-> summarise
+-> (*)
+
+@enduml
+----
+
+=== UNIX command line
+[source]
+-----
+grep 'GCA' records.csv | cut -d',' -f 10,11,12 | awk -F',' {print $1+$2+$3}
+-----
+
+=== SQL
+[source, sql]
+-----
+select f3, sum(f1), avg(f2)
+  from relation
+  where f1 > 500
+  groupby f3
+  having avg(f2) > 50
+-----
+
+=== Java 8 Streams
+
+* *Not* the same as `java.io.InputStream`
+
+[source, java]
+-----
+final int totalForAllMonths_GCA = COINSData
+                .records.stream()
+                .filter((r) -> r.category.equals("GCA"))
+                .map((r) ->
+                  r.april_2010_mth +
+                  r.may_2010_mth +
+                  r.june_2010_mth)
+                .reduce(Integer::sum)
+                .get();
+
+        System.out
+          .println("The total for april, may and june for GCA records is "
+            + totalForAllMonths_GCA);
+-----
+
+=== `Collection.stream()`
+[source]
+-----
+java.util.Collection
+Stream<E> stream()
+Returns a sequential Stream with this collection as its source.
+-----
+
+and
+
+[source, java]
+-----
+java.util.stream
+public interface Stream<T>
+extends BaseStream<T, Stream<T>>
+A sequence of elements supporting sequential and parallel aggregate
+operations.
+-----
+
+=== `Stream` API
+* `filter(Predicate predicate)`
+** the elements of this stream that match the given predicate.
+
+[source, java]
+-----
+stream.filter(s -> !s.isEmpty())
+-----
+* `map(Function mapper)`
+** apply the given function to the elements of this stream.
+
+[source, java]
+-----
+stream.map(s -> s.toUpper())
+-----
+* `collect(Collector collector)`
+** Produce a summary result from all the elements of the stream
+
+[source, java]
+-----
+stream.collect(Collectors.toList())
+stream.collect(Collectors.groupingBy(i -> i % 2 == 0))
+-----
+
+=== `Stream` API
+* `sorted()`
+** return a sorted `Stream` (*expensive*!)
+* `forEach(Consumer action)`
+
+[source, java]
+-----
+stream.forEach(s -> System.out.println(s) )
+-----
+* and many more.  See the `java.util.stream` package javadoc
+
+=== `Stream` gotchas
+[%step]
+* Processing steps must be stateless
+** Don't use or modify external state
+* Complexity
+** Chained anonymous operations can build into complex logic
+** Hard to test/debug
+** So, pull out into named lambda functions
+* Order matters - terminal vs. intermediate operations
+** filter first
+** avoid sorting
+** terminal operations `count()` or `forEach()` come last
+
+=== `Stream` examples
+[source, java]
+-----
+// All trasactions in 2011, sorted by value
+List<Transaction> tr2011 = transactions.stream()
+  .filter(transaction -> transaction.getYear() == 2011)
+  .sorted (comparing(Transaction::getValue))
+  .collect(toList());
+
+// All traders in Cambridge, sorted by name
+List<Trader> traders = transactions.stream()
+  .map(Transaction::getTrader)
+  .filter(trader -> trader.getCity().equals("Cambridge"))
+  .distinct()
+  .sorted(comparing(Trader::getName))
+  .collect(toList());
+-----
+
+=== Questions?
+
+
+== The `Optional` Type
+
+* Express the idea that an API may not return a result *e.g.*
+
+[source, java]
+-----
+  public Booking search(String name) { ... }
+-----
+may fail to find a booking
+
+* Use an `Optional` to make it part of the API
+
+[source, java]
+-----
+  public Optional<Booking> search(String name) { ... }
+-----
+
+=== Creating `Optional` values
+[%step]
+* *`Optional.of(value)`* - definately a non-null value
+* *`Optional.empty()`* - definately *not* a value
+* *`Optional.ofNullable(value)`* - a value which _might_ be null
+
+=== Using `Optional` values
+[%step]
+* *`opt.isPresent()`* - explictly test the value
+* *`opt.get()`* - get the wrapped value (throws `NoSuchElementException` if there is no value present !)
+* *`opt.orElse("default value")`* - get the wrapped value, or the default if not present
+
+=== Using `Optional` values
+* *`opt.map`* - for `Stream` processing without breaking the chain to check for missing values
+
+[source, java]
+-----
+Optional<FileInputStream> fis =
+  names.stream().filter(name -> !isProcessedYet(name))
+                .findFirst()
+                .map(name -> new FileInputStream(name));
+-----
+
+* Here, `findFirst` returns an `Optional<String>`,
+* `map` returns an `Optional<FileInputStream>` for the desired file if one exists,
+** or an `empty` if not.
+
+=== Questions?
+
+
+== End
