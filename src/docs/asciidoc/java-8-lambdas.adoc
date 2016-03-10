@@ -273,5 +273,133 @@ Optional<FileInputStream> fis =
 
 === Questions?
 
+== javaslang library
+
+== Examples
+
+=== Removing Duplication
+
+* Our codebase had a common pattern, repeated 100s of times
+
+[source, java]
+-----
+try {
+  session = openSession();
+  tx = connection.startTransaction();
+  // Do some DB operation
+  result = session.createQuery(...);
+  tx.commit();
+  // Do some more work with the result
+  return transform(result);
+}
+// Several of these
+catch (SomeExceptions e) { /* Handle & rollback */ }
+finally { session.close(); }
+-----
+
+=== Pull out the common code
+
+[source,java]
+-----
+public <T> Optional<T>
+      tryInTransaction(Function<DatabaseSession, T> preCommitWork) {
+  try {
+    session = openSession();
+    tx = connection.startTransaction();
+    // call the supplied function
+    T result = preCommitWork.apply(session);
+    tx.commit();
+    return Optional.ofNullable(result); // The result may be null
+  }
+  // Several of these
+  catch (SomeExceptions e) { /* Handle & rollback */ }
+  finally { session.close(); }
+}
+-----
+
+=== Before
+
+[source,java]
+-----
+try {
+  session = openSession();
+  tx = connection.startTransaction();
+  enterprisePojo =
+    getPersistentEnterprise(session, serviceConfig.getEnterpriseName());
+  tx.commit();
+  if (enterprisePojo != null) {
+      enterpriseList = EnterpriseConverter.convert(Lists.newArrayList(p));
+  } else {
+      throw new NotFoundException("No Enterprise found in database.");
+  }
+  return enterpriseList;
+}
+catch (Exception e) { /* Handle & rollback */ }
+finally { session.close(); }
+-----
+
+=== After
+
+* 'Noise' is removed (reuse via lambda parameter)
+* Error handling is separated from the happy-path (`Optional`)
+
+[source,java]
+-----
+return tryInTransaction(session ->
+  getPersistentEnterprise(session, serviceConfig.getEnterpriseName()) )
+
+.map(p ->  EnterpriseConverter.convert(Lists.newArrayList(p)))
+
+.orElseThrow(() -> new NotFoundException("No Enterprise found in database."));
+-----
+
+=== Retry
+
+* Uses the javaslang `Try` - an abstraction of an operation that _might_ fail
+
+[source, java]
+-----
+public final class Retry<T> {
+  // Fluent builder methods here
+
+  public Try<T> operation(CheckedSupplier<T> operation) {
+    int tries = 1;
+    while (true) {
+      try {
+        T result = operation.get(); // <---- call the supplied function
+        return Try.success(result);
+      } catch (Throwable e) {
+        if (tries < maxTimes) {
+          // Retry logic here
+        } else {
+          return Try.failure(e);
+        }
+      }
+    }
+  }
+}
+-----
+
+=== Retry
+
+[source, java]
+-----
+Retry<String> retry = Retry.times(HTTP_ATTEMPTS).pausing(5, SECONDS);
+
+toggleList = retry
+  .operation(() -> {
+    // May fail with an exception
+    httpClient.getRequest(uri.getPath())
+  })
+  .map(json -> {
+    // Transform the successful result (after retries as appropriate)
+    Arrays.asList(gson.fromJson(json, Toggles.class).toggles)
+  })
+  .getOrElseThrow(() -> {
+      // Either the result of the transformation, or throw a suitable error
+      // N.B. could also provide a default with `getOrElse(...)`
+      new RuntimeException("Failed to retrieve config after retrying")
+  });
+-----
 
 == End
