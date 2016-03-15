@@ -1,0 +1,39 @@
+= Exercises
+
+== Lambdas / Functional Interfaces
+
+* Command pattern
+** with Undo
+* Refactor AbstractFactory to lambdas
+* Replace duplicated logic using lambdas
+
+== Streams
+* Source from large (infinite?) stream
+** Loreum Ipsum?
+** Shakespere text?
+
+* Incorporate Optional/Try streams to look at failure handling
+
+
+== C++ 11 Lambdas
+http://stackoverflow.com/questions/7627098/what-is-a-lambda-expression-in-c11
+
+* Anonymous Functors
+** Syntactic sugar over Functors
+* Allow capturing of variables
+** Must be declared
+
+== Examples
+
+* http://www.developer.com/java/understanding-lambda-enabled-design-patterns.html
+* http://www.javacodegeeks.com/2015/09/java-8-lambda-expression-for-design-patterns-command-design-pattern.html
+* http://www.grahamlea.com/2014/07/lambda-design-patterns-java-8/
+
+== Patterns
+
+* Command
+* Strategy
+* Template Method
+* Abstract Factory
+* Observer
+** https://dzone.com/articles/the-observer-pattern-using-modern-java

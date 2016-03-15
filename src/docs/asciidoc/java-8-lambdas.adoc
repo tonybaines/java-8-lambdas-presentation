@@ -345,12 +345,13 @@ finally { session.close(); }
 
 [source,java]
 -----
-return tryInTransaction(session ->
-  getPersistentEnterprise(session, serviceConfig.getEnterpriseName()) )
+Optional<EnterprisePojo> enterprisePojo =
+  tryInTransaction(s ->
+    getPersistentEnterprise(s, serviceConfig.getEnterpriseName()) )
 
-.map(p ->  EnterpriseConverter.convert(Lists.newArrayList(p)))
-
-.orElseThrow(() -> new NotFoundException("No Enterprise found in database."));
+return enterprisePojo
+  .map(p ->  EnterpriseConverter.convert(Lists.newArrayList(p)))
+  .orElseThrow(() -> new NotFoundException("No Enterprise found in database."));
 -----
 
 === Retry
