@@ -1,4 +1,18 @@
-= Exercises
+= Outline
+
+* Slides - Functional Interfaces & Lambdas [15 mins]
+* Exercises [30 mins]
+** Replacements
+** RemoveDuplication
+* Slides - Streams [10 mins]
+* Exercises
+** Collections [20 mins]
+** [Extension]
+** Parallelism [5 mins]
+* Slides - Optionals Introduction [5 mins]
+* Exercises - Optionals
+* Slides - Optionals Discussion
+* Slides - Javaslang
 
 == Lambdas / Functional Interfaces
 

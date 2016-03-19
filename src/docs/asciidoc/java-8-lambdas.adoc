@@ -6,11 +6,8 @@ ifndef::sourcedir[:sourcedir: ../java]
 
 == What's New?
 * Functional Programming (Lambdas)
-* Default Methods in Interfaces
 * Streams
 * `Optional`
-* New Date/Time API
-* 'Nashorn' JavaScript engine
 
 
 == Functional Interfaces
