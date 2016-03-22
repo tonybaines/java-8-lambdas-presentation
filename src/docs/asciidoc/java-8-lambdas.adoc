@@ -221,6 +221,12 @@ List<Trader> traders = transactions.stream()
   .collect(toList());
 -----
 
+=== `Stream` Cheatsheet
+
+http://zeroturnaround.com/wp-content/uploads/2016/01/Java-8-Streams-cheat-sheet-v3.png
+
+image::Java-8-Streams-cheat-sheet-v3.png[width=80%]
+
 === Questions?
 
 
