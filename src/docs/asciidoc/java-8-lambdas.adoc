@@ -276,6 +276,23 @@ Optional<FileInputStream> fis =
 
 === Questions?
 
+== End
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+== Extras
+
 == javaslang library
 
 == Examples
@@ -406,4 +423,4 @@ toggleList = retry
   });
 -----
 
-== End
+== Questions?
