@@ -5,11 +5,62 @@ ifndef::imagesdir[:imagesdir: images]
 ifndef::sourcedir[:sourcedir: ../java]
 
 == What's New?
+* New Date/Time API
 * Functional Programming (Lambdas)
 * Default Methods on Interfaces
 * Streams
 * `Optional`
 
+
+== New Date/Time API
+* Improves on java.util.Date and java.util.Calendar
+* Based on Joda-time
+* Handy conversion methods for migration
+* A reminder of why it needed improvement
+[source,java]
+-----
+Date date = new Date(114, 2, 18); // Tue Mar 18 00:00:00 2014 (?!)
+-----
+
+=== A Fluent API (`java.time` package)
+
+[source, java]
+-----
+LocalDate.parse("2016-01-10"); // Just a date
+LocalTime.parse("10:15:30"); // Just a time-of-day
+LocalDate endOfTime = LocalDate.MAX;
+assert (LocalDate.now().isBefore(endOfTime));
+
+// Amount of time measured in years/months/days
+Period periodOfTenDays = Period.ofDays(10);
+
+// Amount of time recorded to the nanosecond;
+Duration durationOfTenDays = Duration.of(10, ChronoUnit.DAYS);
+
+// Specific point in time
+Instant now = Instant.now();
+
+Instant tenDaysFromNow = now.plus(durationOfTenDays);
+-----
+
+=== Conversion
+* Easy conversion to and from other date types
+
+[source, java]
+-----
+// To the new types from the old ones
+new java.sql.Date(1234567879).toLocalDate();
+new java.sql.Timestamp(1234567879).toInstant();
+new java.util.Date().toInstant();
+
+// To the old types from the new ones
+java.sql.Date.from(Instant.now());
+java.sql.Timestamp.from(Instant.ofEpochMilli(1234567879));
+java.util.Date.from(Instant.now());
+-----
+
+
+=== Questions?
 
 == Functional Interfaces
 [%step]
