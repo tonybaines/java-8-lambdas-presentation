@@ -20,6 +20,13 @@
 ** with Undo
 * Refactor AbstractFactory to lambdas
 * Replace duplicated logic using lambdas
+* for -> foreach
+* Threads
+** Runnable
+** Callable
+* Custom
+** Methods accepting SAM interface
+** Defining SAM interface
 
 == Streams
 * Source from large (infinite?) stream
@@ -28,6 +35,9 @@
 
 * Incorporate Optional/Try streams to look at failure handling
 
+== Monads
+* Optional
+* CompletableFuture
 
 == C++ 11 Lambdas
 http://stackoverflow.com/questions/7627098/what-is-a-lambda-expression-in-c11

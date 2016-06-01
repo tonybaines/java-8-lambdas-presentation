@@ -1,7 +1,7 @@
 [submodule "exercises"]
 	path = java8-lambdas-exercises
-	url = git@github.com:tonybaines/java8-lambdas-exercises.git
+	url = https://github.com/tonybaines/java8-lambdas-exercises.git
 [submodule "java8-lambdas-exercises-answers"]
 	path = java8-lambdas-exercises-answers
-	url = git@github.com:tonybaines/java8-lambdas-exercises.git
+	url = https://github.com/tonybaines/java8-lambdas-exercises.git
 	branch = answers
