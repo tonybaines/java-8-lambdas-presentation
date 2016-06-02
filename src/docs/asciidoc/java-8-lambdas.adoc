@@ -4,6 +4,13 @@
 ifndef::imagesdir[:imagesdir: images]
 ifndef::sourcedir[:sourcedir: ../java]
 
+
+= Exercises
+
+* Cache - lookup (returns Option) orElse(compute).  must use Supplier not value (lazy eval)
+** pass computation, not the result of computation
+
+
 == What's New?
 * New Date/Time API
 * Functional Programming (Lambdas)
