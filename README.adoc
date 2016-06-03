@@ -21,6 +21,8 @@
 * Refactor AbstractFactory to lambdas
 * Replace duplicated logic using lambdas
 * for -> foreach
+* Comparator
+* Mock factory methods
 * Threads
 ** Runnable
 ** Callable
