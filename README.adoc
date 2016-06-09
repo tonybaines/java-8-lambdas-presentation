@@ -2,7 +2,7 @@
 
 * Slides - Functional Interfaces & Lambdas [15 mins]
 * Exercises [30 mins]
-** Replacements
+** examples.Replacements
 ** RemoveDuplication
 * Slides - Streams [10 mins]
 * Exercises
