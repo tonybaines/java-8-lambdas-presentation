@@ -1,22 +1,18 @@
 = Java 8 Lambdas
-2016-03-09
+2016-06-09
 :revnumber: {project-version}
 ifndef::imagesdir[:imagesdir: images]
 ifndef::sourcedir[:sourcedir: ../java]
 
-
-= Exercises
-
-* Cache - lookup (returns Option) orElse(compute).  must use Supplier not value (lazy eval)
-** pass computation, not the result of computation
 
 
 == What's New?
 * New Date/Time API
 * Functional Programming (Lambdas)
 * Default Methods on Interfaces
-* Streams
 * `Optional`
+* Streams
+* `CompletableFuture`
 
 
 == New Date/Time API
@@ -70,14 +66,63 @@ java.util.Date.from(Instant.now());
 === Questions?
 
 == Functional Interfaces
-[%step]
 * A functional interface has exactly one abstract method
 * Several interfaces defined in `java.util.function`
-** *`Function<T,R>`* - transform something of type *T* to something of type *R*
-** *`BiFunction<T,R,S>`* - transform something of type *T* and of type *R* to something of type *S*
-** *`Consumer<T>`* - accept something of type *T* (assumes a side-effect results)
-** *`Predicate<T>`* - transform something of type *T* to `boolean`
-** *`Supplier<R>`* - provides one or more instances of type *R*
+
+=== `Function<T,R>`
+* Transform something of type *T* to something of type *R*
+
+[plantuml, "Function<T,R>", png, scaledwidth="100%"]
+----
+@startuml
+    (*)->[String]"Function<String, Integer>"
+    "Function<String, Integer>" -> [Integer](*)
+@enduml
+----
+
+=== `BiFunction<T,R,S>`
+* Transform something of type *T* and of type *R* to something of type *S*
+
+[plantuml, "BiFunction<T,R,S>", png, scaledwidth="100%"]
+----
+@startuml
+    (*)->[(String, String)]"BiFunction<String, Boolean, Integer>"
+    "BiFunction<String, Boolean, Integer>" -> [Integer](*)
+@enduml
+----
+
+=== `Consumer<T>`
+* Accept something of type *T*
+** assumes a side-effect results
+
+[plantuml, "Consumer<T>", png, scaledwidth="100%"]
+----
+@startuml
+    (*)->[String]"Consumer<String>"
+@enduml
+----
+
+=== `Supplier<R>`
+* Provides one or more instances of type *R*
+
+[plantuml, "Supplier<R>", png, scaledwidth="100%"]
+----
+@startuml
+    "Supplier<Integer>" -> [Integer](*)
+@enduml
+----
+
+=== `Predicate<T>`
+* Transform something of type *T* to `boolean`
+
+[plantuml, "Predicate<T>", png, scaledwidth="100%"]
+----
+@startuml
+    (*)->[String]"Predicate<String>"
+    "Predicate<String>" -> [Boolean](*)
+@enduml
+----
+
 
 === Implementing Functional Interfaces
 * Can just create instances of the functional interfaces (Java 7 style)
@@ -102,10 +147,9 @@ Predicate<Integer> isEvenPredicate = (i) -> i%2 == 0;
 Function<String, Integer> myFunction = (s) -> s.length();
 -----
 
-[%step]
 * `myFunction` is a `Function` accepting a `String` and returning an `Integer`
 ** a reference to something that does computation
-* The *core principle* of Functional Programming is that functions are *values*
+* Key difference is that functions are things that can be passed around
 ** Like `String` or `int`
 ** Can be passed-in and returned-from methods
 
@@ -126,6 +170,13 @@ Could be written
 IntStream.rangeClosed(0,10)
       .filter( i -> i%2 == 0 )
 -----
+
+=== Questions?
+
+=== Exercises
+* `lambdas/Basics`
+* `lambdas/Replacements`
+* `lambdas/CommonFunctionTypes`
 
 
 == Default Methods in Interfaces
@@ -251,6 +302,9 @@ IntStream.rangeClosed(0,10)
 
 === Questions?
 
+=== Exercises
+* `interfaces/InterfaceDefaultMethods`
+
 
 == `Optional`
 
@@ -279,13 +333,11 @@ may fail to find a booking
 -----
 
 === Creating `Optional` values
-[%step]
 * *`Optional.of(value)`* - definitely a non-null value
 * *`Optional.empty()`* - definitely *not* a value
 * *`Optional.ofNullable(value)`* - a value which _might_ be null
 
 === Using `Optional` values
-[%step]
 * *`opt.isPresent()`* - explicitly test the value
 * *`opt.get()`* - get the wrapped value (throws `NoSuchElementException` if there is no value present !)
 * *`opt.orElse("default value")`* - get the wrapped value, or the default if not present
@@ -318,6 +370,8 @@ Optional<FileInputStream> fis =
 
 === Questions?
 
+=== Exercises
+* `optionals/Optionals`
 
 == Streams
 
@@ -426,13 +480,18 @@ stream.forEach(s -> System.out.println(s) )
 * and many more.  See the `java.util.stream` package javadoc
 
 === `Stream` gotchas
-[%step]
 * Processing steps must be stateless
 ** Don't use or modify external state
+
+
+=== `Stream` gotchas
 * Complexity
 ** Chained anonymous operations can build into complex logic
 ** Hard to test/debug
 ** So, pull out into named lambda functions
+
+
+=== `Stream` gotchas
 * Order matters - terminal vs. intermediate operations
 ** filter first
 ** avoid sorting
@@ -464,6 +523,128 @@ image::Java-8-Streams-cheat-sheet-v3.png[width=80%]
 
 === Questions?
 
+=== Exercises
+* `streams/Collections`
+* `streams/Parallelism`
+* `streams/Extension`
+
+
+== `CompletableFuture`
+
+=== Back to `Future`
+* `Future` was an abstraction over `Thread`
+* Still difficult to build multi-stage processes
+* Exception handling is clunky
+
+[source,java]
+-----
+Future<Long> someTime = Executors.newSingleThreadExecutor()
+      .submit(() -> System.currentTimeMillis());
+someTime.get();  // Blocking call
+-----
+
+=== `CompletableFuture`
+
+* No need for an `Executor` (optional)
+* Much richer API
+
+[source,java]
+-----
+CompletableFuture<Long> someTime = CompletableFuture
+      .supplyAsync(() -> System.currentTimeMillis());
+-----
+
+=== Error Handling
+
+* Put the happy and sad-path logic together
+
+[source,java]
+-----
+someTime.whenCompleteAsync((aLong, throwable) -> {
+     if (throwable != null) {/* handle the error*/}
+     else {/*handle the result*/}
+});
+-----
+
+* or
+
+[source,java]
+-----
+someTime.exceptionally(throwable -> 0l);
+-----
+
+
+=== Chained Operations
+
+* Chains of asynchronous processing
+
+[source,java]
+-----
+someTime.thenApplyAsync(aLong -> Instant.ofEpochMilli());
+-----
+
+* Combine results
+
+[source,java]
+-----
+someTime.thenCombine(otherTime, (t1, t2) -> t1 > t2 ? t1 : t2);
+-----
+
+
+=== First past The Post
+
+[source,java]
+-----
+CompletableFuture.anyOf(someTime, otherTime)
+      .get();
+-----
+
+=== Questions?
+
+=== Exercises
+* `futures/CompletableFutures`
+
+[plantuml, "simplified-data-model", png, scaledwidth="100%"]
+----
+@startuml
+
+note left of Client
+  I want coffee and cake!
+end note
+
+== Coffee First ==
+Client -> Service1: bestPriceForCoffee()
+Client <-- Service1: £2.50
+Client -> Service2: bestPriceForCoffee()
+Client <-- Service2: £2.10
+Client -> Service3: bestPriceForCoffee()
+Client <-- Service3: OUT-OF-BEAN-ERROR!
+
+== Then Cake ==
+Client -> Service1: bestPriceForCake()
+Client <-- Service1: £0.99
+Client -> Service2: bestPriceForCake()
+Client <-- Service2: £1.20
+Client -> Service3: bestPriceForCake()
+Client <-- Service3: £0.50
+
+note left of Client
+  Choose based
+  on price
+end note
+
+@enduml
+----
+
+
+== End
+
+== &nbsp;
+
+== &nbsp;
+
+
+== Extras
 
 == Examples
 
@@ -545,23 +726,6 @@ return enterprisePojo
 -----
 
 
-
-== End
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-== Extras
 
 == javaslang library
 
