@@ -570,7 +570,9 @@ someTime.whenCompleteAsync((aLong, throwable) -> {
 
 [source,java]
 -----
-someTime.exceptionally(throwable -> 0l);
+CompletableFuture<Long> someTime = CompletableFuture
+      .supplyAsync(() -> System.currentTimeMillis()
+      .exceptionally(throwable -> 0l);
 -----
 
 
