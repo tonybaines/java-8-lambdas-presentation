@@ -606,7 +606,7 @@ CompletableFuture.anyOf(someTime, otherTime)
 === Exercises
 * `futures/CompletableFutures`
 
-[plantuml, "simplified-data-model", png, scaledwidth="100%"]
+[plantuml, "completable-futures-shopping", png, scaledwidth="100%"]
 ----
 @startuml
 
@@ -638,15 +638,85 @@ end note
 @enduml
 ----
 
+== End
 
 == End
 
-== &nbsp;
-
-== &nbsp;
-
 
 == Extras
+
+
+== Quick Check
+
+* Rather than test a function with specific examples
+** e.g. Valid values, one or more invalid values
+* Define 'Properties' of the function under test and assert that they're always true
+
+=== Syntax
+
+[source, java]
+-----
+@RunWith(JUnitQuickcheck.class)
+public class MyFunctionTest {
+...
+    @Property public void myFunctionReturnsAValueForAllInputs(
+                    String myFuncParam1, Boolean myFuncParam2) {
+        // Normal JUnit/Hamcrest assertions
+        assertThat(myFunction(myFuncParam1, myFuncParam2),
+            is(not(null)));
+    }
+}
+-----
+
+* Will be run many times with ranges and permuatations of inputs
+** ""|short|long|i18n|null , true|false
+
+=== Constraining generated values
+* Assumptions skip assertions without failing
+
+[source, java]
+-----
+assumeThat(n, greaterThan(ZERO));
+-----
+
+* Constrain the range of generated values with annotations
+
+[source, java]
+-----
+@Property
+public void hold(@InRange(min = "0", max = "9") int digit) {...}
+@Property
+public void hold(@When(satisfies = "#_ >= 0 && #_ <= 9") int digit) {...}
+-----
+
+=== Shrinking
+* If a property is disproved with a certain combination of values that's one example
+* Shrinking is a feature which attempts to find a 'smallest' value
+** Supplied by generators
+** Might be numerically smaller or e.g. a shorter list
+
+=== Custom Generators
+* Built-in generators for Java types
+* Sub-class for custom types
+
+[source, java]
+-----
+public class Dimensions extends Generator<Dimension> {
+        public Dimensions() { super(Dimension.class); }
+
+        @Override public Dimension generate(
+            SourceOfRandomness r,
+            GenerationStatus status) {
+
+            // ...
+        }
+    }
+-----
+
+=== Questions?
+
+=== Exercises
+* `quickcheck/QuickcheckTest`
 
 == Examples
 
@@ -720,16 +790,18 @@ finally { session.close(); }
 -----
 Optional<EnterprisePojo> enterprisePojo =
   tryInTransaction(s ->
-    getPersistentEnterprise(s, serviceConfig.getEnterpriseName()) )
+    getPersistentEnterprise(s, serviceConfig.getEnterpriseName())
+  );
 
+// Unpack the Optional value and use it
+// ... or throw an error if not present
 return enterprisePojo
   .map(p ->  EnterpriseConverter.convert(Lists.newArrayList(p)))
-  .orElseThrow(() -> new NotFoundException("No Enterprise found in database."));
+  .orElseThrow(() ->
+    new NotFoundException("No Enterprise found in database.")
+  );
 -----
 
-
-
-== javaslang library
 
 === Retry
 
@@ -758,7 +830,7 @@ public final class Retry<T> {
 }
 -----
 
-=== Retry
+=== Using Retry
 
 [source, java]
 -----
@@ -769,15 +841,16 @@ toggleList = retry
     // May fail with an exception
     httpClient.getRequest(uri.getPath())
   })
+  // Transform the successful result (after retries as appropriate)
   .map(json -> {
-    // Transform the successful result (after retries as appropriate)
     Arrays.asList(gson.fromJson(json, Toggles.class).toggles)
   })
+  // Either the result of the transformation,
   .getOrElseThrow(() -> {
-      // Either the result of the transformation, or throw a suitable error
-      // N.B. could also provide a default with `getOrElse(...)`
+      // or throw a suitable error
       new RuntimeException("Failed to retrieve config after retrying")
   });
+  // N.B. could also provide a default with `getOrElse(...)`
 -----
 
 == Questions?
